@@ -9,12 +9,15 @@ module.exports = function (req, res) {
   var acceptEncoding = req.headers['accept-encoding']
   if (!acceptEncoding) acceptEncoding = ''
 
-  if (acceptEncoding.match(/\bdeflate\b/)) {
+  if (acceptEncoding.match(/\bbr\b/) && typeof zlib.createBrotliCompress === 'function') {
+    res.setHeader('Content-Encoding', 'br')
+    return zlib.createBrotliCompress()
+  } else if (acceptEncoding.match(/\bgzip\b/)) {
+    res.setHeader('Content-Encoding', 'gzip')
+    return zlib.createGzip()
+  } else if (acceptEncoding.match(/\bdeflate\b/)) {
     res.setHeader('Content-Encoding', 'deflate')
     return zlib.createDeflate()
-  } else if (acceptEncoding.match(/\bgzip\b/)) {
-    res.writeHead(200, { 'Content-Encoding': 'gzip' })
-    return zlib.createGzip()
   } else {
     return new stream.PassThrough()
   }
